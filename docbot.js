@@ -5,116 +5,112 @@ if (!process.env.token) {
 
 var Botkit = require('botkit');
 var os = require('os');
-
 var controller = Botkit.slackbot({
     debug: true,
 });
-
 var bot = controller.spawn({
     token: process.env.token
 }).startRTM();
 
-
-controller.hears(['hello','hi'],'direct_message,direct_mention,mention',function(bot, message) {
-
-    bot.api.reactions.add({
-        timestamp: message.ts,
-        channel: message.channel,
-        name: 'robot_face',
-    },function(err, res) {
-        if (err) {
-            bot.botkit.log('Failed to add emoji reaction :(',err);
-        }
-    });
+var template_prefix = '@template_';
 
 
-    controller.storage.users.get(message.user,function(err, user) {
-        if (user && user.name) {
-            bot.reply(message,'Hello ' + user.name + '!!');
-        } else {
-            bot.reply(message,'Hello.');
-        }
-    });
-});
+controller.hears(['create template (.*)'], 'direct_message,direct_mention,mention', function(bot, message){
 
-controller.hears(['call me (.*)'],'direct_message,direct_mention,mention',function(bot, message) {
-    var matches = message.text.match(/call me (.*)/i);
-    var name = matches[1];
-    controller.storage.users.get(message.user,function(err, user) {
-        if (!user) {
-            user = {
-                id: message.user,
-            };
-        }
-        user.name = name;
-        controller.storage.users.save(user,function(err, id) {
-            bot.reply(message,'Got it. I will call you ' + user.name + ' from now on.');
-        });
-    });
-});
+    bot.startConversation(message, function(err, convo) {
+        var matches = message.text.match(/create template (.*)/i);
+        var name = matches[1];
+        var item = '';
+        var list = [];
 
-controller.hears(['what is my name','who am i'],'direct_message,direct_mention,mention',function(bot, message) {
-
-    controller.storage.users.get(message.user,function(err, user) {
-        if (user && user.name) {
-            bot.reply(message,'Your name is ' + user.name);
-        } else {
-            bot.reply(message,'I don\'t know yet!');
-        }
-    });
-});
-
-
-controller.hears(['shutdown'],'direct_message,direct_mention,mention',function(bot, message) {
-
-    bot.startConversation(message,function(err, convo) {
-        convo.ask('Are you sure you want me to shutdown?',[
+        convo.say('Ok, let\'s start to create template ' + name);
+        convo.ask('Item?', [
             {
-                pattern: bot.utterances.yes,
+                pattern: 'next',
                 callback: function(response, convo) {
-                    convo.say('Bye!');
+                    if (item !== '') {
+                        list.push(item);
+                        item = '';
+                    }
+                    convo.repeat();
                     convo.next();
-                    setTimeout(function() {
-                        process.exit();
-                    },3000);
                 }
             },
-        {
-            pattern: bot.utterances.no,
-            default: true,
-            callback: function(response, convo) {
-                convo.say('*Phew!*');
-                convo.next();
-            }
-        }
+            {
+                pattern: 'end',
+                callback: function(response, convo) {
+                    if (item !== '') {
+                        list.push(item);
+                        item = '';
+                    }
+                    controller.storage.channels.save(templateData(name, list), function(err, id) {
+                        if (err) {
+                            convo.say('Failed to create template ' + name);
+                            convo.stop();
+                        } else {
+                            convo.say('Successfully created template ' + name);
+                            convo.next();
+                        }
+                    });
+                }
+            },
+            {
+                default: true,
+                callback: function(response, convo) {
+                    item += response.text;
+                    convo.silentRepeat();
+                }
+            },
         ]);
     });
-});
-
-
-controller.hears(['uptime','identify yourself','who are you','what is your name'],'direct_message,direct_mention,mention',function(bot, message) {
-
-    var hostname = os.hostname();
-    var uptime = formatUptime(process.uptime());
-
-    bot.reply(message,':robot_face: I am a bot named <@' + bot.identity.name + '>. I have been running for ' + uptime + ' on ' + hostname + '.');
 
 });
 
-function formatUptime(uptime) {
-    var unit = 'second';
-    if (uptime > 60) {
-        uptime = uptime / 60;
-        unit = 'minute';
+controller.hears(['list (.*)'], 'direct_message,direct_mention,mention', function(bot, message){
+    var matches = message.text.match(/list (.*)/i);
+    var target = matches[1];
+    switch (target) {
+        case 'template':
+        case 'templates':
+            controller.storage.channels.all(function(err, all_channel_data) {
+                if (all_channel_data) {
+                    var keys = Object.keys(all_channel_data);
+                    bot.reply(message, keys.map(removeTemplatePrefix).join("\n"));
+                }
+            });
+            break;
+        default:
+            break;
     }
-    if (uptime > 60) {
-        uptime = uptime / 60;
-        unit = 'hour';
-    }
-    if (uptime != 1) {
-        unit = unit + 's';
-    }
+});
 
-    uptime = uptime + ' ' + unit;
-    return uptime;
+controller.hears(['show (.*) (.*)'], 'direct_message,direct_mention,mention', function(bot, message){
+    var matches = message.text.match(/show (.*) (.*)/i);
+    var target = matches[1];
+    var name = matches[2];
+    switch (target) {
+        case 'template':
+            controller.storage.channels.get(addTemplatePrefix(name), function(err, template) {
+                if (template && template.format) {
+                    bot.reply(message, template.format);
+                }
+            });
+            break;
+        default:
+            break;
+    }
+});
+
+templateData = function(name, list){
+    return {
+        id: addTemplatePrefix(name),
+        format: list.join("\n"),
+    };
 }
+removeTemplatePrefix = function(name){
+    return name.replace(template_prefix, '');
+}
+addTemplatePrefix = function(name){
+    return template_prefix + name;
+}
+
