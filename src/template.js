@@ -47,37 +47,22 @@ module.exports.use = function(controller) {
         });
     });
 
-    controller.hears(['list (.*)'], 'direct_mention', function(bot, message){
-        var target = message.match[1];
-        switch (target) {
-            case 'template':
-            case 'templates':
-                controller.storage.channels.all(function(err, all_channel_data){
-                    if (all_channel_data) {
-                        var keys = Object.keys(all_channel_data).filter(hasTemplatePrefix);
-                        bot.reply(message, keys.map(removeTemplatePrefix).join("\n"));
-                    }
-                });
-                break;
-            default:
-                break;
-        }
+    controller.hears(['list template(s)?'], 'direct_mention', function(bot, message){
+        controller.storage.channels.all(function(err, all_channel_data){
+            if (all_channel_data) {
+                var keys = Object.keys(all_channel_data).filter(hasTemplatePrefix);
+                bot.reply(message, keys.map(removeTemplatePrefix).join("\n"));
+            }
+        });
     });
 
-    controller.hears(['show (.*) (.*)'], 'direct_mention', function(bot, message){
-        var target = message.match[1];
-        var name = message.match[2];
-        switch (target) {
-            case 'template':
-                controller.storage.channels.get(addTemplatePrefix(name), function(err, template){
-                    if (template && template.format) {
-                        bot.reply(message, template.format);
-                    }
-                });
-                break;
-            default:
-                break;
-        }
+    controller.hears(['show template (.*)'], 'direct_mention', function(bot, message){
+        var name = message.match[1];
+        controller.storage.channels.get(addTemplatePrefix(name), function(err, template){
+            if (template && template.format) {
+                bot.reply(message, template.format);
+            }
+        });
     });
 
     var template_prefix = '@template_';
