@@ -15,3 +15,4 @@ var bot = controller.spawn({
 var template = require('./src/template');
 
 template.use(controller);
+
