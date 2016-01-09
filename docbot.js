@@ -12,7 +12,7 @@ var bot = controller.spawn({
     token: process.env.token
 }).startRTM();
 
-var template = require('./src/template');
+var template = require('./controllers/template-controller');
 
 template.use(controller);
 

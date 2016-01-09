@@ -1,3 +1,5 @@
+var templateModel = require('../models/template-model');
+
 module.exports.use = function(controller) {
 
     controller.hears(['create template (.*)'], 'direct_mention', function(bot, message){
@@ -25,7 +27,7 @@ module.exports.use = function(controller) {
                             list.push(item);
                             item = '';
                         }
-                        controller.storage.channels.save(templateData(name, list), function(err, id){
+                        controller.storage.channels.save(templateModel.data(name, list), function(err, id){
                             if (err) {
                                 convo.say('Failed to create template ' + name);
                                 convo.stop();
@@ -50,37 +52,19 @@ module.exports.use = function(controller) {
     controller.hears(['list template(s)?'], 'direct_mention', function(bot, message){
         controller.storage.channels.all(function(err, all_channel_data){
             if (all_channel_data) {
-                var keys = Object.keys(all_channel_data).filter(hasTemplatePrefix);
-                bot.reply(message, keys.map(removeTemplatePrefix).join("\n"));
+                var keys = Object.keys(all_channel_data).filter(templateModel.hasPrefix);
+                bot.reply(message, keys.map(templateModel.removePrefix).join("\n"));
             }
         });
     });
 
     controller.hears(['show template (.*)'], 'direct_mention', function(bot, message){
         var name = message.match[1];
-        controller.storage.channels.get(addTemplatePrefix(name), function(err, template){
+        controller.storage.channels.get(templateModel.addPrefix(name), function(err, template){
             if (template && template.format) {
                 bot.reply(message, template.format);
             }
         });
     });
-
-    var template_prefix = '@template_';
-    templateData = function(name, list){
-        return {
-            id: addTemplatePrefix(name),
-            format: list.join("\n"),
-        };
-    }
-    hasTemplatePrefix = function(key){
-        var regex = new RegExp('^' + template_prefix);
-        return key.match(regex);
-    }
-    removeTemplatePrefix = function(name){
-        return name.replace(template_prefix, '');
-    }
-    addTemplatePrefix = function(name){
-        return template_prefix + name;
-    }
 
 };
