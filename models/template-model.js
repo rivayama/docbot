@@ -1,26 +1,34 @@
 var template_prefix = '@template_',
     model = module.exports;
 
-model = {
+model.data = function(name, list){
+    return {
+        id: model.addPrefix(name),
+        format: list.join("\n"),
+    };
+};
 
-    data: function(name, list){
-        return {
-            id: model.addPrefix(name),
-            format: list.join("\n"),
-        };
-    },
+model.get = function(name, controller, cb){
+    var id = model.addPrefix(name);
+    controller.storage.channels.get(id, function(err, data){
+        if (data) {
+            cb(null, data);
+        } else {
+            cb(true);
+        }
+    });
+};
 
-    hasPrefix: function(key){
-        var regex = new RegExp('^' + template_prefix);
-        return key.match(regex);
-    },
+model.hasPrefix = function(key){
+    var regex = new RegExp('^' + template_prefix);
+    return key.match(regex);
+};
 
-    removePrefix: function(name){
-        return name.replace(template_prefix, '');
-    },
+model.removePrefix = function(name){
+    return name.replace(template_prefix, '');
+};
 
-    addPrefix: function(name){
-        return template_prefix + name;
-    },
+model.addPrefix = function(name){
+    return template_prefix + name;
+};
 
-}
