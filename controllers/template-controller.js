@@ -27,11 +27,8 @@ module.exports.use = function(controller) {
                             list.push(item);
                             item = '';
                         }
-                        controller.storage.channels.save(templateModel.data(name, list), function(err, id){
-                            if (err) {
-                                convo.say('Failed to create template ' + name);
-                                convo.stop();
-                            } else {
+                        templateModel.save(name, list, controller, function(err, id){
+                            if (!err) {
                                 convo.say('Successfully created template ' + name);
                                 convo.next();
                             }
@@ -50,19 +47,18 @@ module.exports.use = function(controller) {
     });
 
     controller.hears(['list template(s)?'], 'direct_mention', function(bot, message){
-        controller.storage.channels.all(function(err, all_channel_data){
-            if (all_channel_data) {
-                var keys = Object.keys(all_channel_data).filter(templateModel.hasPrefix);
-                bot.reply(message, keys.map(templateModel.removePrefix).join("\n"));
+        templateModel.all(controller, function(err, templates){
+            if (!err) {
+                bot.reply(message, templates.join("\n"));
             }
         });
     });
 
     controller.hears(['show template (.*)'], 'direct_mention', function(bot, message){
         var name = message.match[1];
-        controller.storage.channels.get(templateModel.addPrefix(name), function(err, template){
-            if (template && template.format) {
-                bot.reply(message, template.format);
+        templateModel.get(name, controller, function(err, tpl){
+            if (!err) {
+                bot.reply(message, tpl.format);
             }
         });
     });
