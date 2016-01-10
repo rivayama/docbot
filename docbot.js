@@ -13,6 +13,8 @@ var bot = controller.spawn({
 }).startRTM();
 
 var template = require('./controllers/template-controller');
+var document = require('./controllers/document-controller');
 
 template.use(controller);
+document.use(controller);
 
