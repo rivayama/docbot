@@ -9,12 +9,26 @@ module.exports.use = function(controller) {
             var template = message.match[1];
             var format = [];
             var title = '';
-            var doc = '';
             var item = '';
+            var list = [];
 
             convo.on('end', function(convo){
                 if (convo.status == 'stopped') {
                     bot.reply(message, 'No template ' + template);
+                }
+                if (convo.status == 'completed') {
+                    var doc = mdHelper.h1(title)
+                            + mdHelper.lineBreak();
+                    for (key in format) {
+                        doc += mdHelper.h2(format[key]);
+                        doc += list[key];
+                        doc += mdHelper.changeTopic();
+                    }
+                    documentModel.save(title, doc, controller, function(err, id){
+                        if (!err) {
+                            bot.reply(message, 'Successfully created document ' + title);
+                        }
+                    });
                 }
             });
 
@@ -29,22 +43,18 @@ module.exports.use = function(controller) {
             convo.say('Ok, let\'s start to create ' + template + ' document');
             convo.ask('Title?', function(response, convo){
                 title = response.text;
-                doc += mdHelper.h1(title);
-                doc += mdHelper.changeTopic();
                 convo.next();
             });
-
-            console.log(doc);
 
             for (key in format) {
                 convo.ask(format[key] + '?', [
                     {
                         pattern: 'next',
                         callback: function(response, convo){
-                            doc += mdHelper.h2(format[key]);
-                            doc += item;
-                            doc += mdHelper.changeTopic();
-                            item = '';
+                            if (item !== '') {
+                                list.push(item);
+                                item = '';
+                            }
                             convo.next();
                         }
                     },
@@ -57,8 +67,6 @@ module.exports.use = function(controller) {
                     },
                 ]);
             }
-            convo.say('Successfully created document ' + title);
-            convo.say(doc);
         });
     });
 

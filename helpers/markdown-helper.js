@@ -9,9 +9,9 @@ helper.h2 = function(text) {
 };
 
 helper.lineBreak = function() {
-    return "--";
+    return "\n";
 };
 
 helper.changeTopic = function() {
-    return "____";
+    return "\n\n";
 };
