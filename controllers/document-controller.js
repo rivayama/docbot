@@ -11,7 +11,6 @@ module.exports.use = function(controller) {
             var title = '';
             var item = '';
             var list = [];
-
             convo.on('end', function(convo){
                 if (convo.status == 'stopped') {
                     bot.reply(message, 'No template ' + template);
@@ -31,7 +30,6 @@ module.exports.use = function(controller) {
                     });
                 }
             });
-
             templateModel.get(template, controller, function(err, tpl){
                 if (err) {
                     convo.stop(); // Go to convo.on('end', ...) with 'stopped' status
@@ -39,13 +37,11 @@ module.exports.use = function(controller) {
                     format = tpl.format.split("\n");
                 }
             });
-
             convo.say('Ok, let\'s start to create ' + template + ' document');
             convo.ask('Title?', function(response, convo){
                 title = response.text;
                 convo.next();
             });
-
             for (key in format) {
                 convo.ask(format[key] + '?', [
                     {
@@ -66,6 +62,24 @@ module.exports.use = function(controller) {
                         }
                     },
                 ]);
+                // Go to convo.on('end', ...) with 'completed' status
+            }
+        });
+    });
+
+    controller.hears(['list document(s)?'], 'direct_mention', function(bot, message){
+        documentModel.all(controller, function(err, documents){
+            if (!err) {
+                bot.reply(message, documents.join("\n"));
+            }
+        });
+    });
+
+    controller.hears(['show document (.*)'], 'direct_mention', function(bot, message){
+        var name = message.match[1];
+        documentModel.get(name, controller, function(err, doc){
+            if (!err) {
+                bot.reply(message, doc.text);
             }
         });
     });
