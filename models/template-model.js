@@ -5,7 +5,7 @@ model.save = function(name, list, controller, cb){
     var data = model.data(name, list);
     controller.storage.channels.save(data, function(err, id){
         if (id) {
-            cb(null, id)
+            cb(null, id);
         } else {
             cb(true);
         }
