@@ -1,5 +1,6 @@
 var templateModel = require('../models/template-model');
 var documentModel = require('../models/document-model');
+var qiitaModel    = require('../models/qiita-model');
 var mdHelper      = require('../helpers/markdown-helper');
 
 module.exports.use = function(controller) {
@@ -16,17 +17,18 @@ module.exports.use = function(controller) {
                     bot.reply(message, 'No template ' + template);
                 }
                 if (convo.status == 'completed') {
-                    var doc = mdHelper.h1(title)
-                            + mdHelper.lineBreak();
+                    var doc = '';
                     for (key in format) {
-                        doc += mdHelper.h2(format[key]);
+                        doc += mdHelper.h1(format[key]);
                         doc += list[key];
                         doc += mdHelper.changeTopic();
                     }
                     documentModel.save(title, doc, controller, function(err, id){
-                        if (!err) {
+                        if (err) return;
+                        qiitaModel.save(title, doc, template, function(err, res, body){
+                            if (err) return;
                             bot.reply(message, 'Successfully created document ' + title);
-                        }
+                        });
                     });
                 }
             });
@@ -58,6 +60,7 @@ module.exports.use = function(controller) {
                         default: true,
                         callback: function(response, convo){
                             item += response.text;
+                            item += mdHelper.lineBreak();
                             convo.silentRepeat();
                         }
                     },

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
-    "botkit": "0.0.5"
+    "botkit": "0.0.5",
+    "qiita": "^1.2.0"
   }
 }
