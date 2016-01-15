@@ -2,10 +2,9 @@ var qiita = require('qiita'),
     model = module.exports;
 
 var q = new qiita({
-    team: 'Your team name here',
-    token: 'Your access token here',
+    team: process.env.QIITA_TEAM_ID,
+    token: process.env.QIITA_ACCESS_TOKEN,
 });
-// console.log(q);
 
 model.save = function(name, doc, template, cb){
     var data = {
