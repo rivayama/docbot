@@ -15,7 +15,8 @@ Then you'll need to set following environment variables.
 	$ export QIITA_ACCESS_TOKEN=your_qiita_access_token_here
 
 You can get Slack API token at: https://my.slack.com/services/new/bot
-And Qiita access token: https://qiita.com/settings/tokens/new
+
+and Qiita access token at: https://qiita.com/settings/tokens/new
 
 ## Run bot
 
