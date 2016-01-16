@@ -5,6 +5,7 @@
   "dependencies": {
     "botkit": "0.0.5",
     "qiita": "^1.2.0",
+    "mongodb": "1.4",
     "monk": "^1.0.1"
   },
   "scripts": {
