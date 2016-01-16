@@ -15,7 +15,9 @@ model.save = function(name, list, controller, cb){
 model.all = function(controller, cb){
     controller.storage.channels.all(function(err, all_channel_data){
         if (all_channel_data) {
-            var keys = all_channel_data.filter(model.hasPrefix).filter(model.getId);
+            var keys = all_channel_data
+                       .filter(model.hasPrefix)
+                       .map(model.getId);
             cb(null, keys.map(model.removePrefix));
         } else {
             cb(true);
