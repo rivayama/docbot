@@ -1,6 +1,6 @@
 # Docbot
 
-Slack bot helps you to create documents. Document will be posted to your Qiita: Team.
+Slack bot helps you to create documents. Document will be posted to your [Qiita:Team][1].
 
 ## Setup
 
@@ -44,3 +44,6 @@ For more info, see `help`.
 	@docbot: help
 
 Enjoy!
+
+[1]: https://teams.qiita.com/
+
