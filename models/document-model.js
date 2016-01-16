@@ -15,7 +15,9 @@ model.save = function(name, doc, controller, cb){
 model.all = function(controller, cb){
     controller.storage.channels.all(function(err, all_channel_data){
         if (all_channel_data) {
-            var keys = Object.keys(all_channel_data).filter(model.hasPrefix);
+            var keys = all_channel_data
+                       .filter(model.hasPrefix)
+                       .map(model.getId);
             cb(null, keys.map(model.removePrefix));
         } else {
             cb(true);
@@ -41,9 +43,12 @@ model.data = function(name, doc){
         text: doc,
     };
 };
-model.hasPrefix = function(key){
+model.getId = function(obj){
+    return obj.id;
+};
+model.hasPrefix = function(obj){
     var regex = new RegExp('^' + document_prefix);
-    return key.match(regex);
+    return obj.id.match(regex);
 };
 model.removePrefix = function(name){
     return name.replace(document_prefix, '');
