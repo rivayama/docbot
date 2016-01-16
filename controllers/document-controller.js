@@ -42,9 +42,6 @@ module.exports.use = function(controller) {
                         title = response.text;
                         convo.next();
                     });
-                    console.log('========================');
-                    console.log(format);
-                    console.log('========================');
                     for (key in format) {
                         convo.ask(format[key] + '?', [
                             {
