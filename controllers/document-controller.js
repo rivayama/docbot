@@ -37,36 +37,39 @@ module.exports.use = function(controller) {
                     convo.stop(); // Go to convo.on('end', ...) with 'stopped' status
                 } else {
                     format = tpl.format.split("\n");
+                    convo.say('Ok, let\'s start to create ' + template + ' document');
+                    convo.ask('Title?', function(response, convo){
+                        title = response.text;
+                        convo.next();
+                    });
+                    console.log('========================');
+                    console.log(format);
+                    console.log('========================');
+                    for (key in format) {
+                        convo.ask(format[key] + '?', [
+                            {
+                                pattern: 'next',
+                                callback: function(response, convo){
+                                    if (item !== '') {
+                                        list.push(item);
+                                        item = '';
+                                    }
+                                    convo.next();
+                                }
+                            },
+                            {
+                                default: true,
+                                callback: function(response, convo){
+                                    item += response.text;
+                                    item += mdHelper.lineBreak();
+                                    convo.silentRepeat();
+                                }
+                            },
+                        ]);
+                        // Go to convo.on('end', ...) with 'completed' status
+                    }
                 }
             });
-            convo.say('Ok, let\'s start to create ' + template + ' document');
-            convo.ask('Title?', function(response, convo){
-                title = response.text;
-                convo.next();
-            });
-            for (key in format) {
-                convo.ask(format[key] + '?', [
-                    {
-                        pattern: 'next',
-                        callback: function(response, convo){
-                            if (item !== '') {
-                                list.push(item);
-                                item = '';
-                            }
-                            convo.next();
-                        }
-                    },
-                    {
-                        default: true,
-                        callback: function(response, convo){
-                            item += response.text;
-                            item += mdHelper.lineBreak();
-                            convo.silentRepeat();
-                        }
-                    },
-                ]);
-                // Go to convo.on('end', ...) with 'completed' status
-            }
         });
     });
 
