@@ -4,9 +4,7 @@
   "description": "",
   "dependencies": {
     "botkit": "0.0.5",
-    "qiita": "^1.2.0"
-  },
-  "scripts": {
-    "start": "node docbot.js"
+    "qiita": "^1.2.0",
+    "monk": "^1.0.1"
   }
 }
